@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#0d1117">
+  <title>GitHub 热榜 · 周榜 / 月榜</title>
+  <meta name="description" content="每日自动抓取 GitHub 周榜 / 月榜 TOP20，支持历史月份回看、收藏与离线缓存">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="GitHub热榜">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="appbar">
+    <div class="brand">
+      <img src="icons/icon-192.png" alt="">
+      <div>
+        <h1>GitHub 热榜</h1>
+        <p id="updateInfo">加载中…</p>
+      </div>
+    </div>
+    <div class="actions">
+      <button id="btnRefresh" class="icon-btn" title="重新抓取" aria-label="重新抓取">⟳</button>
+      <button id="btnTheme" class="icon-btn" title="深浅色切换" aria-label="深浅色切换">☀️</button>
+      <button id="btnInfo" class="icon-btn" title="说明" aria-label="说明">ⓘ</button>
+    </div>
+  </header>
+
+  <main id="main">
+    <section id="view-list">
+      <div class="chips" id="selectorChips"></div>
+      <div class="filters">
+        <input id="searchInput" type="search" placeholder="搜索项目名 / 描述…">
+        <select id="langSelect" title="按语言筛选">
+          <option value="">全部语言</option>
+        </select>
+      </div>
+      <div id="summaryBar" class="summary"></div>
+      <div id="offlineBadge" class="offline" hidden>📴 离线数据（来自本地缓存）</div>
+      <div id="repoList" class="list"></div>
+      <p class="footnote">数据来自 GitHub Trending 官方页面 · 快照存档于服务器 data/ 目录</p>
+    </section>
+
+    <section id="view-favs" hidden>
+      <div id="favList" class="list"></div>
+    </section>
+  </main>
+
+  <nav class="tabbar">
+    <button data-tab="daily" class="active"><span>🚀</span>飙升</button>
+    <button data-tab="weekly"><span>🔥</span>周榜</button>
+    <button data-tab="monthly"><span>📅</span>月榜</button>
+    <button data-tab="favs"><span>⭐</span>收藏</button>
+  </nav>
+
+  <div id="tipbar" class="tipbar" hidden>
+    <span>💡 点浏览器菜单「添加到主屏幕」，像 App 一样全屏使用</span>
+    <button id="tipClose" aria-label="关闭提示">×</button>
+  </div>
+  <button id="btnInstall" class="install-btn" hidden>📲 安装到主屏幕</button>
+
+  <div id="modal" class="modal" hidden>
+    <div class="modal-card">
+      <h2>关于本应用</h2>
+      <ul>
+        <li>数据来源：GitHub Trending 官方页面，服务器每日 <b id="infoFetchTime">08:00</b> 自动抓取并按日期存档；启动时若当天缺失会自动补抓。</li>
+        <li><b>飙升</b>：今日新增 Star 最快的项目（官方日榜），卡片上标注 ⚡日增速（今日新增 ÷ 原有存量）、「周榜 #N / 月榜 #N」表示同时也在该榜，「首次收录」表示此前从未出现在任何榜单。</li>
+        <li><b>周榜</b>：最近 7 天新增 Star 前 20；<b>月榜</b>：本自然月至今新增 Star 前 20。</li>
+        <li>月榜支持回看历史月份：进行中的月份标「至今」，已结束月份使用该月最后一次快照作为最终榜单。</li>
+        <li>卡片上的 ▲▼ 表示与上一期快照对比的排名变化，NEW 为新上榜。</li>
+        <li>断网时自动使用最近一次的本地缓存数据。部署到 GitHub Pages 后自动进入<b>云端模式</b>：数据由 GitHub Actions 每日抓取发布，手机无需电脑开机。</li>
+      </ul>
+      <h3>添加到手机主屏幕</h3>
+      <ul>
+        <li><b>Android（Chrome）</b>：右上角菜单 → 「添加到主屏幕」/「安装应用」。</li>
+        <li><b>iPhone（Safari）</b>：底部中间「分享」按钮 → 「添加到主屏幕」。</li>
+      </ul>
+      <div class="modal-btns">
+        <button id="btnClearCache" class="ghost">清除本地缓存</button>
+        <button id="btnCloseModal">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+  <div id="ptr" class="ptr"><span class="spin"></span></div>
+
+  <noscript>本应用需要启用 JavaScript。</noscript>
+  <script src="app.js"></script>
+</body>
+</html>

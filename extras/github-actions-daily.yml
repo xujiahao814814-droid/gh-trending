@@ -1,0 +1,76 @@
+# 云端全自动方案：每天在 GitHub 上抓取三榜并发布成手机可直接访问的网站
+#
+# 使用方法（一次性，约 2 分钟）：
+# 1. 把整个 github-trending-app 项目推到你自己的 GitHub 仓库（公开仓库）
+# 2. 把本文件复制为 .github/workflows/daily.yml
+# 3. 仓库 Settings → Pages → Build and deployment → Source 选「GitHub Actions」
+# 完成。之后每天约 07:00（北京时间）自动抓取并更新网站：
+#   https://你的用户名.github.io/仓库名/
+# 手机浏览器打开该地址 → 「添加到主屏幕」即可，电脑无需开机。
+#
+# 说明：
+# - cron 为 UTC 时间，0 23 * * * ≈ 北京时间次日上午 7:00（GitHub 可能延迟几分钟到半小时）
+# - FETCH_TIME 仅用于界面展示的更新时间文案
+
+name: daily-trending-archive
+
+on:
+  schedule:
+    - cron: '0 23 * * *'
+  workflow_dispatch: # 允许在 Actions 页面手动触发
+
+permissions:
+  contents: write # 提交每日存档
+  pages: write    # 发布网站
+  id-token: write # Pages 部署需要
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 抓取今日三榜（飙升/周/月）
+        env:
+          FETCH_TIME: '07:00'
+        run: node extras/fetch-cli.js
+
+      - name: 提交存档到仓库
+        run: |
+          git config user.name "trending-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add data/
+          git commit -m "chore: daily trending snapshot $(date -u +%F)" || echo "no changes"
+          git push
+
+  deploy:
+    needs: fetch
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4 # 重新检出，包含刚提交的 data/
+
+      - name: 组装站点（前端 + 数据）
+        run: |
+          mkdir -p site
+          cp -r public/. site/
+          cp -r data site/data
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

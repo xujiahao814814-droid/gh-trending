@@ -1,0 +1,5 @@
+# 抓取失败时的调试页面
+data/_debug-*.html
+
+# 依赖（本项目零依赖，此行仅防手滑 npm install）
+node_modules/
