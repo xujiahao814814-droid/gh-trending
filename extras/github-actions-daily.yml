@@ -10,6 +10,8 @@
 #
 # 说明：
 # - cron 为 UTC 时间，0 23 * * * ≈ 北京时间次日上午 7:00（GitHub 可能延迟几分钟到半小时）
+# - 想立即抓取：仓库 Actions 页 → daily-trending-archive → Run workflow，或用 App 顶栏 ☁️ 按钮
+# - 抓取后若数据无变化则不会产生提交，但每天的自提交会持续刷新 GitHub 的 60 天不活跃停用规则
 # - FETCH_TIME 仅用于界面展示的更新时间文案
 
 name: daily-trending-archive

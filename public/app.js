@@ -179,6 +179,8 @@ function statusFromCatalog(cat) {
     cloud: true,
     today: cat.today,
     fetchTime: cat.fetchTime,
+    generatedAt: cat.generatedAt,
+    repo: cat.repo || null,
     latest: {
       daily: daily[0] ? { date: daily[0] } : null,
       weekly: weekly[0] ? { date: weekly[0] } : null,
@@ -191,6 +193,18 @@ function statusFromCatalog(cat) {
     },
     archives: { daily: daily.length, weekly: weekly.length, monthly: months.length },
   };
+}
+
+/** 「X 分钟/小时/天前」 */
+function agoText(iso) {
+  const ms = Date.now() - new Date(iso).getTime();
+  if (!Number.isFinite(ms) || ms < 0) return '刚刚';
+  const m = Math.floor(ms / 60000);
+  if (m < 1) return '刚刚';
+  if (m < 60) return m + ' 分钟前';
+  const h = Math.floor(m / 60);
+  if (h < 24) return h + ' 小时前';
+  return Math.floor(h / 24) + ' 天前';
 }
 
 /* ---------------- 主题 ---------------- */
@@ -255,6 +269,7 @@ async function loadMeta(bust = false) {
 
 function renderStatus(s) {
   state.status = s;
+  $('#btnCloud').hidden = !(s.cloud && s.repo); // ☁️ 仅云端模式且有仓库信息时显示
   const latest = ['daily', 'weekly', 'monthly']
     .map((k) => s.latest && s.latest[k]).filter(Boolean)
     .sort((a, b) => (a.date < b.date ? 1 : -1))[0];
@@ -267,7 +282,8 @@ function renderStatus(s) {
   }
   const ready = s.todayReady.daily || s.todayReady.weekly || s.todayReady.monthly;
   const prefix = s.cloud ? `云端数据 · 每日 ${s.fetchTime} 更新` : `每日 ${s.fetchTime} 自动抓取`;
-  $('#updateInfo').textContent = `${prefix} · ${ready ? '今日已更新' : '今日待更新'} · 存档 ${total} 份`;
+  const fresh = s.generatedAt ? ` · 数据 ${agoText(s.generatedAt)}` : '';
+  $('#updateInfo').textContent = `${prefix} · ${ready ? '今日已更新' : '今日待更新'} · 存档 ${total} 份${fresh}`;
 }
 
 const SKEL = '<div class="skel"></div>'.repeat(8);
@@ -517,6 +533,12 @@ function bindEvents() {
   $('#btnTheme').addEventListener('click', () =>
     applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
   $('#btnRefresh').addEventListener('click', doRefresh);
+  $('#btnCloud').addEventListener('click', () => {
+    const repo = state.status && state.status.repo;
+    if (!repo) { toast('当前模式无需云端抓取'); return; }
+    window.open(`https://github.com/${repo}/actions/workflows/daily.yml`, '_blank', 'noopener');
+    toast('在新页面点「Run workflow」即可立即抓取');
+  });
   $('#btnInfo').addEventListener('click', () => {
     if (state.status) $('#infoFetchTime').textContent = state.status.fetchTime;
     $('#modal').hidden = false;

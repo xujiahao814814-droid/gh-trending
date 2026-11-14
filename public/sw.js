@@ -1,6 +1,6 @@
 /* GitHub 热榜 App — Service Worker（应用外壳缓存；数据文件网络优先）
  * 注意：修改 styles.css / app.js / index.html 后需递增 CACHE 版本号，客户端才能立即拿到新文件 */
-const CACHE = 'gh-trending-v6';
+const CACHE = 'gh-trending-v7';
 const SHELL = [
   './',
   './index.html',
