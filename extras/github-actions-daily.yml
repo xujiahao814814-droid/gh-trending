@@ -60,7 +60,9 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4 # 重新检出，包含刚提交的 data/
+      - uses: actions/checkout@v4 # 拉取最新 main：包含本次运行刚提交的存档，避免发布滞后一天
+        with:
+          ref: main
 
       - name: 组装站点（前端 + 数据）
         run: |
